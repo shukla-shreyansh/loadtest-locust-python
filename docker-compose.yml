@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  master:
+    build: .
+    ports:
+     - "8089:8089"
+    environment:
+      - LOCUST_MODE=master
+      - TARGET_HOST=${TARGET_HOST}
+      - LOCUST_OPTS=--headless -u ${USERS:-10} -r ${SPAWN_RATE:-1} -t ${RUN_TIME:-5m}
+      - RAMP_UP=${RAMP_UP:-60}
+      - RAMP_DOWN=${RAMP_DOWN:-60}
+      - TOKEN_FILE=/var/token
+    volumes:
+      - ./:/locust
+    secrets:
+      - token
+
+  worker:
+    build: .
+    environment:
+      - LOCUST_MODE=worker
+      - LOCUST_MASTER_HOST=master
+      - TARGET_HOST=${TARGET_HOST}
+      - TOKEN_FILE=/var/token
+    volumes:
+      - ./:/locust
+    secrets:
+      - token
+
+secrets:
+  token:
+    file: ./token.json
